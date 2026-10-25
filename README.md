@@ -123,7 +123,7 @@ QUALIFY rank() OVER (PARTITION BY Piste ORDER BY total DESC) = 1;
 SELECT Piste, rank() OVER (PARTITION BY Piste ORDER BY total DESC) AS rang, num, Projet, total
 FROM n ORDER BY Piste, rang;
 
--- Classement global
+-- Vue d'ensemble indicative (pas de classement global officiel)
 SELECT rank() OVER (ORDER BY total DESC) AS rang, num, Projet, Piste, total
 FROM n ORDER BY rang;
 ```
