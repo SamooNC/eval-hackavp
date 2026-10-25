@@ -18,6 +18,9 @@ Le dépôt contient une grille de notation commune et une copie de cette grille 
 | `thomas-avron_grille_hackavp_notation.csv` | Grille de Thomas AVRON (jury), sur 100 ; n° 3 incomplète (13 critères sur 22) |
 | `christophe-roger_grille_hackavp_notation.csv` | Grille de Christophe Roger (jury), sur 100 |
 | `christophe-roger_justifications.md` | Justification de chacune des 242 notes de Christophe Roger, avec références |
+| `michele-barre_grille_hackavp_notation.csv` | Grille de Michèle Barre (jury), sur 100 |
+| `marc-rodrigues_grille_hackavp_notation.csv` | Grille de Marc Rodrigues (jury), sur 100 ; sans commentaires |
+| `andy-malo_grille_hackavp_notation.csv` | Grille d'Andy Malo (jury), sur 100 |
 | `opus-5_5_grille_hackavp_notation.csv` | Évaluation par Claude Opus 5.5 |
 | `sonnet-5_5_grille_hackavp_notation.csv` | Évaluation par Claude Sonnet 5.5 |
 | `haiku-5_5_grille_hackavp_notation.csv` | Évaluation par Claude Haiku 5.5 |
@@ -121,7 +124,7 @@ QUALIFY rank() OVER (PARTITION BY Piste ORDER BY total DESC) = 1;
 SELECT Piste, rank() OVER (PARTITION BY Piste ORDER BY total DESC) AS rang, num, Projet, total
 FROM n ORDER BY Piste, rang;
 
--- Classement global
+-- Vue d'ensemble indicative (pas de classement global officiel)
 SELECT rank() OVER (ORDER BY total DESC) AS rang, num, Projet, Piste, total
 FROM n ORDER BY rang;
 ```

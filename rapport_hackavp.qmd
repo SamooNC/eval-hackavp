@@ -12,7 +12,7 @@ abstract: |
   <https://dev.to/adriens/hackavp-premier-hackathon-dedie-a-lemploi-dans-la-fonction-publique-en-ncl-3oj0>.
   Les notes sont lues automatiquement dans tous les fichiers `*_grille_hackavp_notation.csv`
   du dossier : chaque nouveau membre du jury qui y dépose sa grille est pris en compte au
-  prochain rendu. Le rapport présente les classements par piste et toutes pistes confondues,
+  prochain rendu. Le rapport présente les gagnants et classements par piste, une vue d'ensemble indicative,
   l'accord entre évaluateurs, et une mesure indicative de la part de texte généré par IA
   dans les articles.
 format:
@@ -227,9 +227,6 @@ ligne <- function(distinction, d) tibble(
 resultats <- bind_rows(
   ligne("Gagnant track onPrem", filter(cons, piste == "onPrem souverain", rang_piste == 1)),
   ligne("Gagnant track SaaS",    filter(cons, piste == "SaaS no limit", rang_piste == 1)),
-  ligne("1er global", filter(cons, rang_global == 1)),
-  ligne("2e global",  filter(cons, rang_global == 2)),
-  ligne("3e global",  filter(cons, rang_global == 3)),
   if (prix_ok) {
     d <- filter(cons, num %in% as.integer(prix_s$`N°`))
     mutate(ligne(paste0("Prix du jury (", statut_prix, " : ", n_pour, " voix pour sur ", n_jury, ")"), d),
@@ -238,12 +235,9 @@ resultats <- bind_rows(
                 Track = "—", `Moyenne /100` = "—", `Ex æquo` = "")
 ) |> filter(Projet != "")
 
-# Égalités qui touchent une distinction (podium global ou tête de track)
-egalites <- bind_rows(
-  cons |> filter(rang_global <= 3) |> count(rang_global) |> filter(n > 1) |>
-    transmute(txt = paste0(n, " projets ex æquo à la ", rang_global, "e place du classement global")),
-  cons |> filter(rang_piste == 1) |> count(piste) |> filter(n > 1) |>
-    transmute(txt = paste0(n, " projets ex æquo en tête de la track ", piste)))
+# Égalités qui touchent une distinction (tête de track)
+egalites <- cons |> filter(rang_piste == 1) |> count(piste) |> filter(n > 1) |>
+  transmute(txt = paste0(n, " projets ex æquo en tête de la track ", piste))
 ```
 
 Résultats au `r format(Sys.Date(), "%d/%m/%Y")`, calculés sur **`r n_jury_r` grille(s) du jury sur `r n_jury`** et **`r n_mod_r` évaluations de modèles d'IA**. `r if (n_jury_r < n_jury) "**Ces résultats sont provisoires** tant que toutes les grilles du jury ne sont pas reçues." else "Toutes les grilles du jury sont reçues."`
@@ -403,9 +397,13 @@ plot_track("onPrem souverain")
 tab_track("onPrem souverain")
 ```
 
+\begingroup\footnotesize\setlength{\tabcolsep}{3pt}
+
 ```{r tab-onprem-eval}
 tab_eval_track("onPrem souverain")
 ```
+
+\endgroup
 
 # Classement de la track SaaS no limit
 
@@ -420,21 +418,24 @@ plot_track("SaaS no limit")
 tab_track("SaaS no limit")
 ```
 
+\begingroup\footnotesize\setlength{\tabcolsep}{3pt}
+
 ```{r tab-saas-eval}
 tab_eval_track("SaaS no limit")
 ```
 
-# Classement global, toutes tracks confondues
+\endgroup
+
+# Vue d'ensemble, toutes tracks confondues
 
 ```{r global-tete}
-tete <- filter(cons, rang_global == 1)
 global_label <- cons |> mutate(label = paste0(label, " (", str_remove(piste, " souverain| no limit"), ")"))
 ```
 
-Toutes tracks confondues, les `r nrow(cons)` projets sont classés sur leur note consensuelle. Le premier est `r paste(tete$lien, collapse = " et ")` (`r fr(tete$moyenne[1])`/100, track `r tete$piste[1]`).
+Le palmarès comprend **un gagnant par track et le prix du jury** ; il n'y a pas de classement global officiel. Cette vue d'ensemble, à titre indicatif, place les `r nrow(cons)` projets sur leur note consensuelle pour les comparer d'une track à l'autre.
 
 ```{r fig-global, fig.height=4.8}
-#| fig-cap: "Classement global : notes de chaque évaluateur et note consensuelle, track entre parenthèses (articles : voir le tableau des projets, par numéro)"
+#| fig-cap: "Vue d'ensemble (indicative) : notes de chaque évaluateur et note consensuelle, track entre parenthèses (articles : voir le tableau des projets, par numéro)"
 cons_sauv <- cons; tot_sauv <- tot
 cons <- global_label
 tot  <- tot |> mutate(label = global_label$label[match(num, global_label$num)])
@@ -448,7 +449,7 @@ cons |>
   transmute(Rang = rang_global, Projet = lien, Track = piste,
             `Moyenne /100` = fr(moyenne), `Écart-type` = fr(ecart_type),
             Min = fr(min, 1), Max = fr(max, 1)) |>
-  kable(align = "rllrrrr", caption = "Classement global, toutes tracks confondues (note consensuelle)")
+  kable(align = "rllrrrr", caption = "Vue d'ensemble indicative, toutes tracks confondues (note consensuelle ; sans distinction)")
 ```
 
 ## Classements alternatifs
@@ -559,7 +560,7 @@ ggplot(rangs, aes(x = as.integer(nom), y = rang, group = label, colour = piste))
   geom_text(data = bords, aes(label = label), hjust = 0, nudge_x = 0.12, size = 2.4, family = "Inter",
             show.legend = FALSE) +
   scale_y_reverse(breaks = 1:11) +
-  scale_x_continuous(breaks = seq_len(n_eval), labels = levels(rangs$nom),
+  scale_x_continuous(breaks = seq_len(n_eval), labels = str_replace(levels(rangs$nom), " ", "\n"),
                      expand = expansion(add = c(0.3, 1.6))) +
   scale_colour_manual(values = c(onPrem = pal$s1, SaaS = pal$s2)) +
   labs(title = "Rang de chaque projet selon chaque évaluateur",
@@ -628,7 +629,7 @@ ggplot(profil, aes(x = critere, y = label, fill = pct)) +
 
 # Prix du jury
 
-Le prix du jury récompense le **coup de cœur du jury** pour un projet. Il est indépendant des classements par track et du classement global : un projet peut le recevoir quelle que soit sa note.
+Le prix du jury récompense le **coup de cœur du jury** pour un projet. Il est indépendant des classements par track : un projet peut le recevoir quelle que soit sa note.
 
 Il est décidé **par les seuls membres du jury humains** (les modèles d'IA ne votent pas) : un projet est proposé dans `prix_du_jury.csv`, puis chaque juré vote *Pour*, *Contre* ou *Abstention* dans `vote_prix_du_jury.csv`. Le prix est attribué à la **majorité absolue du jury**, soit `r majorite` voix pour sur `r n_jury`.
 
@@ -667,10 +668,14 @@ ecarts <- tot |>
             .groups = "drop")
 ```
 
+\begingroup\footnotesize\setlength{\tabcolsep}{3pt}
+
 ```{r tab-correlations}
 kable(round(cor_tab, 2),
       caption = "Corrélation des notes totales entre évaluateurs (projets notés en commun)")
 ```
+
+\endgroup
 
 ```{r tab-biais}
 ecarts |>
@@ -692,7 +697,7 @@ texte_debat <- if (nrow(a_debattre) == 0)
   paste0("Aucun projet ne dépasse ", fr(seuil_div, 1), " point d'écart-type : les évaluateurs sont globalement d'accord.") else
   paste0("Les projets dont l'écart-type dépasse ", fr(seuil_div, 1), " point — ",
          paste(a_debattre$lien, collapse = ", "),
-         " — sont ceux où le temps de délibération a le plus de valeur, surtout près des frontières de podium.")
+         " — sont ceux où le temps de délibération a le plus de valeur, surtout pour la tête de chaque track.")
 ```
 
 L'accord par évaluateur ne dit pas tout : il reste à savoir **sur quels projets les notes s'étalent le plus**. `r texte_debat`
@@ -853,6 +858,8 @@ rea |>
 
 # Annexe : notes détaillées
 
+\begingroup\footnotesize\setlength{\tabcolsep}{3pt}
+
 ```{r tab-annexe}
 tot |>
   select(num, nom, total) |>
@@ -863,8 +870,11 @@ tot |>
   arrange(num) |>
   select(num, lien_court, piste, any_of(evals$nom)) |>
   rename(`N°` = num, Projet = lien_court, Piste = piste) |>
-  kable(caption = "Note totale /100 de chaque évaluateur (— : non noté)")
+  (\(t) kable(t, align = paste0("rll", strrep("r", ncol(t) - 3)),
+              caption = "Note totale /100 de chaque évaluateur (— : non noté)"))()
 ```
+
+\endgroup
 
 ```{r cleanup}
 dbDisconnect(con, shutdown = TRUE)

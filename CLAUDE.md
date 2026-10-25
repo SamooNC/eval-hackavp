@@ -42,7 +42,7 @@ Chaque grille de juré ajoutée donne lieu à un tag et à une release GitHub.
    `gh release create v1.N.0 rapport_hackavp.pdf --target main --title "v1.N.0 — Grille de <Nom>, N+1 grille(s) du jury sur 7" --notes-file <notes>`.
    - `v1.N.0` : une version mineure par grille de juré ajoutée (`v1.0.0` = grille sur 100 avec la seule grille d'Adrien SALES ; la grille suivante donne `v1.1.0`, etc.).
    - `v1.N.1` : un numéro de patch pour une correction sans nouvelle grille.
-   - Notes de release en français : grilles reçues, état du vote du prix du jury, résultats provisoires (podium et gagnants par track).
+   - Notes de release en français : grilles reçues, état du vote du prix du jury, résultats provisoires (gagnant de chaque track et classement par track ; pas de podium global).
 5. Ne jamais supprimer une release ni un tag : publier une release corrective.
 
 Les votes du prix du jury se reportent dans `vote_prix_du_jury.csv` (jurés humains uniquement, `Pour`, `Contre` ou `Abstention`).
